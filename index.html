@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>WMTS Region Selector</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/openseadragon/2.4.2/openseadragon.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/openseadragon-wmts@latest/dist/openseadragon-wmts.min.js"></script>
+    <script src="http://openseadragon.github.io/svg-overlay/openseadragon-svg-overlay.js"></script>
+    <script src="https://d3js.org/d3.v5.min.js"></script>
+    <style>
+      html, body {
+        margin:0;
+        padding:0;
+        width:100%;
+      }
+
+      #map {
+        height:500px;
+        background-color:grey;
+      }
+    </style>
+
+    <script>
+      window.onload = async function() {
+        var viewer = OpenSeadragon({
+          id: "map",
+          prefixUrl: "https://cdnjs.cloudflare.com/ajax/libs/openseadragon/2.4.2/images/"
+        });
+                
+        var map = await OpenSeadragon.WMTS(viewer, {
+          url: 'https://wmts.maptiler.com/aHR0cDovL3dtdHMubWFwdGlsZXIuY29tL2FIUjBjSE02THk5dFlYQnpaWEpwWlhNdGRHbHNaWE5sZEhNdWN6TXVZVzFoZW05dVlYZHpMbU52YlM4eU5WOXBibU5vTDNsdmNtdHphR2x5WlM5dFpYUmhaR0YwWVM1cWMyOXUvanNvbg/wmts'
+        });
+        
+        var overlay = viewer.svgOverlay();
+        
+        setTimeout(() => {
+          var topleftBlue = [ 0.49657373922357484, 0.3210626312804983];
+          var bottomrightBlue = [ 0.4972412308664352, 0.321442989513495 ];
+
+          var topleftRed = [ 0.49695173248836616, 0.32125042534634274 ];
+          var bottomrightRed =  [ 0.496964735252638, 0.32125335889785767 ];
+
+          var largeRect = d3.select(overlay.node()).append("rect")
+            .style('fill', 'rgba(0,0,255,0.3)')
+            .attr("x", topleftBlue[0])
+            .attr("y", topleftBlue[1])
+            .attr("width", bottomrightBlue[0] - topleftBlue[0])
+            .attr("height", bottomrightBlue[1] - topleftBlue[1]);
+
+          var smallRect = d3.select(overlay.node()).append("rect")
+            .style('fill', '#f00')
+            .attr("x", topleftRed[0])
+            .attr("y", topleftRed[1])
+            .attr("width", bottomrightRed[0] - topleftRed[0])
+            .attr("height", bottomrightRed[1] - topleftRed[1]);
+        }, 1000);
+
+        // The map object provides functions to convert OSD coordinates to WGS84
+        var mouseTracker = new OpenSeadragon.MouseTracker({
+          element: viewer.container,
+
+          moveHandler: function(event) {
+            var viewportPoint = viewer.viewport.pointFromPixel(event.position);
+            console.log('viewport', viewportPoint);
+
+            var lonlat = map.viewportToGeoCoordinates(viewportPoint);
+            console.log('lonlat', lonlat);
+          }
+        });
+      }
+    </script>
+  </head>
+
+  <body>
+    <div id="map"></div>
+  </body>
+</html>
